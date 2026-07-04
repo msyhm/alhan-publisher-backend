@@ -1,0 +1,150 @@
+// schema.prisma
+// ─────────────────────────────────────────────────────────────────────────
+// تعریف کامل دیتابیس انتشارات الحان
+// مسیر فایل: prisma/schema.prisma
+//
+// بعد از هر تغییر در این فایل:
+//   npx prisma migrate dev --name "نام-تغییر"   ← ساخت migration جدید
+//   npx prisma generate                          ← بروزرسانی Prisma Client
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// ادمین
+// ─────────────────────────────────────────────────────────────────────────
+model Admin {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// نویسندگان
+// ─────────────────────────────────────────────────────────────────────────
+model Author {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?  @unique
+  phone     String?
+  field     String?                    // حوزه تخصصی
+  bio       String?
+  avatar    String?                    // URL تصویر آواتار
+  status    AuthorStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // رابطه: یک نویسنده می‌تواند چند کتاب داشته باشد
+  books     Book[]
+
+  @@map("authors")
+}
+
+enum AuthorStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// کتاب‌ها
+// ─────────────────────────────────────────────────────────────────────────
+model Book {
+  id            Int      @id @default(autoincrement())
+  title         String
+  description   String?
+  category      String?
+  pages         Int?
+  year          Int?
+  isAudio       Boolean  @default(false)
+  image         String?                // URL تصویر جلد
+  price         Decimal? @db.Decimal(12, 0) // قیمت به تومان، null = تماس برای خرید
+  isbn          String?  @unique
+  edition       String?                // شماره چاپ: اول، دوم، ...
+  publisherCity String?                // محل نشر
+
+  // رابطه با نویسنده
+  authorId      Int?
+  author        Author?  @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  // ✅ فیلد متنی نویسنده — برای سازگاری با داده‌های قدیمی فرانت
+  // بعد از migration کامل، این فیلد حذف می‌شود
+  authorName    String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("books")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// پیام‌های تماس
+// ─────────────────────────────────────────────────────────────────────────
+model Message {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  isRead    Boolean  @default(false)
+  sentAt    DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@map("messages")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// آثار ارسالی
+// ─────────────────────────────────────────────────────────────────────────
+model Submission {
+  id           Int              @id @default(autoincrement())
+  fullName     String
+  email        String
+  phone        String
+  title        String
+  category     String
+  summary      String
+  description  String?
+  hasPublished Boolean          @default(false)
+  hasFile      Boolean          @default(false)
+  fileName     String?          // نام فایل آپلودشده
+  fileUrl      String?          // مسیر فایل در سرور
+  fileSize     Int?             // حجم به بایت
+  status       SubmissionStatus @default(PENDING)
+  trackingCode String           @unique
+  submittedAt  DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@map("submissions")
+}
+
+enum SubmissionStatus {
+  PENDING    // در انتظار بررسی
+  REVIEWING  // در حال بررسی
+  APPROVED   // تأیید شده
+  REJECTED   // رد شده
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// تنظیمات سایت (key-value store)
+// ─────────────────────────────────────────────────────────────────────────
+// هر بخش تنظیمات (hero، about، social و ...) به صورت یک رکورد JSON ذخیره می‌شود
+// مزیت: انعطاف بالا — اضافه کردن تنظیم جدید نیازی به migration ندارد
+model SiteSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique  // مثال: "hero", "about", "social", "general"
+  value     Json                // مقدار به صورت JSON
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
+}

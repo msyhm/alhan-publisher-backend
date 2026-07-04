@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment variables — هرگز نباید commit شوند
+.env
+.env.local
+
+# فایل‌های آپلودشده کاربران
+uploads/*
+!uploads/.gitkeep
+
+# لاگ‌ها
+*.log
+npm-debug.log*
+
+# Prisma
+prisma/migrations/dev.db
+
+# سیستم‌عامل
+.DS_Store
+Thumbs.db
+
+# ادیتور
+.vscode/
+.idea/
