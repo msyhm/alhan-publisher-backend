@@ -18,26 +18,23 @@ export async function login(req, res, next) {
   try {
     const { username, password } = req.body;
 
-    // پیدا کردن ادمین
     const admin = await prisma.admin.findUnique({ where: { username } });
     if (!admin) {
-      // ✅ پیام عمدی مبهم — مهاجم نمی‌داند username اشتباه بود یا password
       throw new AppError("نام کاربری یا رمز عبور اشتباه است", 401);
     }
 
-    // بررسی پسورد
     const isValid = await comparePassword(password, admin.passwordHash);
     if (!isValid) {
       throw new AppError("نام کاربری یا رمز عبور اشتباه است", 401);
     }
 
-    // تولید توکن و ذخیره در cookie
     const token = generateToken(admin);
     setTokenCookie(res, token);
 
     res.json({
       success: true,
       message: "خوش آمدید",
+      token, // ✅ برای فرانت‌هایی که روی دامنه‌ی جدا هستند و از Authorization header استفاده می‌کنند
       admin: {
         id:       admin.id,
         username: admin.username,
@@ -139,6 +136,7 @@ export async function changeUsername(req, res, next) {
     res.json({
       success: true,
       message: "نام کاربری تغییر یافت",
+      token:   newToken, // ✅ توکن جدید — فرانت باید نسخه‌ی ذخیره‌شده‌اش را به‌روز کند
       admin:   updated,
     });
 
