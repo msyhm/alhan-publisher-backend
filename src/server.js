@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 4000;
 
 // ─── میدلورهای امنیتی و پایه ──────────────────────────────────────────────
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginResourcePolicy: false,
 }));
 app.use(
   cors({
