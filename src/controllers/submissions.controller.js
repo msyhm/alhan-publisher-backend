@@ -52,6 +52,7 @@ export async function createSubmission(req, res, next) {
       id:           submission.id,
       trackingCode: submission.trackingCode,
     });
+
   } catch (err) {
     next(err);
   }

@@ -93,10 +93,12 @@ export function handleUpload(uploadMiddleware) {
 // ─── helper: ساخت URL عمومی فایل ─────────────────────────────────────────────
 export function getFileUrl(req, filePath) {
   const baseUrl = `${req.protocol}://${req.get("host")}`;
-  // تبدیل مسیر ویندوزی به URL
-  const normalized = filePath.replace(/\\/g, "/").replace("./uploads", "/uploads");
+  const unixPath = filePath.replace(/\\/g, "/");
+  const idx = unixPath.indexOf("uploads/");
+  const normalized = "/" + (idx !== -1 ? unixPath.slice(idx) : unixPath.replace(/^\/+/, ""));
   return `${baseUrl}${normalized}`;
 }
+
 
 // ─── helper: حذف فایل قدیمی هنگام جایگزینی ──────────────────────────────────
 export function deleteFile(filePath) {
