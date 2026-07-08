@@ -10,6 +10,7 @@
  * DELETE /api/upload/books/:id/image
  */
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { requireAuth }   from "../middlewares/authMiddleware.js";
 import {
   uploadImage,
@@ -25,7 +26,31 @@ import {
 
 const router = Router();
 
-// ✅ همه route های آپلود نیاز به احراز هویت دارند
+// ✅ FIX: rate limiter برای آپلود فایل عمومی — جلوگیری از سوءاستفاده
+// چون این endpoint برای کاربر ناشناس (بدون لاگین) باز است
+const submissionUploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // ۱ ساعت
+  max: 5,
+  message: {
+    success: false,
+    message: "تعداد آپلود فایل زیاد است. لطفاً بعداً امتحان کنید",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// ─── فایل اثر ارسالی — عمومی (بدون نیاز به لاگین) ────────────────────────────
+// ✅ FIX: قبلاً این route هم زیر requireAuth بود، اما فرم "ارسال اثر"
+// توسط کاربر ناشناس (نویسنده) پر می‌شود، نه ادمین — پس نباید نیاز به توکن داشته باشد
+router.post(
+  "/submissions/:id/file",
+  submissionUploadLimiter,
+  (req, _res, next) => { req.uploadFolder = "submissions"; next(); },
+  handleUpload(uploadDocument),
+  uploadSubmissionFile
+);
+
+// ✅ از اینجا به بعد فقط ادمین — تصویر کتاب و آواتار نویسنده
 router.use(requireAuth);
 
 // ─── تصویر جلد کتاب ──────────────────────────────────────────────────────────
@@ -44,14 +69,6 @@ router.post(
   (req, _res, next) => { req.uploadFolder = "authors"; next(); },
   handleUpload(uploadImage),
   uploadAuthorAvatar
-);
-
-// ─── فایل اثر ارسالی ──────────────────────────────────────────────────────────
-router.post(
-  "/submissions/:id/file",
-  (req, _res, next) => { req.uploadFolder = "submissions"; next(); },
-  handleUpload(uploadDocument),
-  uploadSubmissionFile
 );
 
 export default router;

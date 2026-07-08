@@ -101,6 +101,20 @@ export async function uploadSubmissionFile(req, res, next) {
       throw new AppError("اثر ارسالی پیدا نشد", 404);
     }
 
+    // ✅ FIX: چون این endpoint بدون لاگین (عمومی) است، باید جلوی سوءاستفاده گرفته شود
+    // فقط تا ۱۰ دقیقه بعد از ثبت اثر و فقط یک‌بار (وقتی هنوز فایلی ندارد) اجازه آپلود می‌دهیم
+    const TEN_MINUTES = 10 * 60 * 1000;
+    const isRecent = Date.now() - new Date(submission.submittedAt).getTime() < TEN_MINUTES;
+
+    if (submission.hasFile) {
+      deleteFile(req.file.path);
+      throw new AppError("برای این اثر قبلاً فایلی ثبت شده است", 409);
+    }
+    if (!isRecent) {
+      deleteFile(req.file.path);
+      throw new AppError("زمان مجاز برای آپلود فایل این اثر به پایان رسیده است", 403);
+    }
+
     const fileUrl = getFileUrl(req, req.file.path);
 
     // حذف فایل قدیمی اگر وجود داشت
