@@ -70,9 +70,9 @@ const SITE_SETTINGS = [
     key: "hero",
     value: {
       heroSubtitle:  "ناشر آثار علمی، دانشگاهی، فرهنگی و ادبی با هدف ارتقای دانش و فرهنگ در جامعه",
-      heroStat1Label: "سال فعالیت",
-      heroStat2Label: "کتاب منتشر شده",
-      heroStat3Label: "نویسنده همکار",
+      heroStat1Label: "کتاب منتشر شده",
+      heroStat2Label: "نویسنده همکار",
+      heroStat3Label: "سال فعالیت",
       featuredBookId: null,
     },
   },
