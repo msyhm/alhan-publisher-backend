@@ -55,6 +55,17 @@ enum AuthorStatus {
   INACTIVE
 }
 
+model Review {
+  id        Int      @id @default(autoincrement())
+  bookId    Int
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  name      String
+  rating    Int?
+  comment   String
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // کتاب‌ها
 // ─────────────────────────────────────────────────────────────────────────
@@ -66,6 +77,12 @@ model Book {
   pages         Int?
   year          Int?
   isAudio       Boolean  @default(false)
+
+  coverType String?
+  trimSize  String?
+  images    String[]
+  reviews   Review[]
+
   image         String?                // URL تصویر جلد
   price         Decimal? @db.Decimal(12, 0) // قیمت به تومان، null = تماس برای خرید
   isbn          String?  @unique
