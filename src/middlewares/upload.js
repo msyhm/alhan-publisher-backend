@@ -65,6 +65,12 @@ export const uploadImage = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // حداکثر ۵ مگابایت برای تصویر
 }).single("image");
 
+export const uploadImages = multer({
+  storage,
+  fileFilter: imageFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
+}).array("images", 10);
+
 // ✅ آپلود سند — برای فایل آثار ارسالی
 export const uploadDocument = multer({
   storage,

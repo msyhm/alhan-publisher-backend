@@ -11,6 +11,9 @@
  */
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
+import { uploadImages } from "../middlewares/upload.js";
+import { uploadBookImage } from "../controllers/upload.controller.js";
+import {deleteBookGalleryImage} from "../controllers/upload.controller.js";
 import { requireAuth }   from "../middlewares/authMiddleware.js";
 import {
   uploadImage,
@@ -62,6 +65,14 @@ router.post(
 );
 
 router.delete("/books/:id/image", deleteBookImage);
+
+router.post(
+  "/books/:id/images",
+  (req, _res, next) => { req.uploadFolder = "books"; next(); },
+  handleUpload(uploadImages),
+  uploadBookImages
+);
+router.delete("/books/:id/images", deleteBookGalleryImage);
 
 // ─── آواتار نویسنده ───────────────────────────────────────────────────────────
 router.post(

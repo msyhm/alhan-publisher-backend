@@ -1,40 +1,28 @@
-/**
- * books.routes.js
- * ─────────────────────────────────────────────────────────────────────────
- * تعریف endpoint های کتاب‌ها
- * مسیر فایل: src/routes/books.routes.js
- *
- * Public (بدون نیاز به لاگین):
- *   GET  /api/books
- *   GET  /api/books/categories
- *   GET  /api/books/:id
- *
- * Protected (نیاز به JWT ادمین):
- *   POST   /api/books
- *   PUT    /api/books/:id
- *   DELETE /api/books/:id
- */
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { requireAuth, validate } from "../middlewares/authMiddleware.js";
 import { createBookSchema, updateBookSchema } from "../validators/book.validator.js";
-import {
-  getBooks,
-  getCategories,
-  getBook,
-  createBook,
-  updateBook,
-  deleteBook,
-} from "../controllers/books.controller.js";
+import { createReviewSchema } from "../validators/review.validator.js";
+import { getBooks, getCategories, getBook, createBook, updateBook, deleteBook } from "../controllers/books.controller.js";
+import { getBookReviews, createBookReview } from "../controllers/reviews.controller.js";
 
 const router = Router();
 
-// ─── Public routes ─────────────────────────────────────────────────────────────
-// ✅ /categories باید قبل از /:id باشد — وگرنه "categories" به عنوان id تفسیر می‌شود
+const reviewLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { success: false, message: "تعداد نظرات ارسالی زیاد است. لطفاً بعداً امتحان کنید" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 router.get("/categories", getCategories);
 router.get("/",           getBooks);
 router.get("/:id",        getBook);
 
-// ─── Protected routes (فقط ادمین) ─────────────────────────────────────────────
+router.get( "/:bookId/reviews", getBookReviews);
+router.post("/:bookId/reviews", reviewLimiter, validate(createReviewSchema), createBookReview);
+
 router.post(  "/",    requireAuth, validate(createBookSchema), createBook);
 router.put(   "/:id", requireAuth, validate(updateBookSchema), updateBook);
 router.delete("/:id", requireAuth,                             deleteBook);

@@ -9,6 +9,7 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import reviewsRoutes from "./routes/reviews.routes.js";
 
 import { connectDatabase } from "./config/database.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
@@ -58,6 +59,7 @@ app.use("/api/messages",    messagesRoutes);
 app.use("/api/submissions", submissionsRoutes);
 app.use("/api/settings",    settingsRoutes);
 app.use("/api/upload",      uploadRoutes);
+app.use("/api/reviews", reviewsRoutes);
 
 // ─── مدیریت خطاها ──────────────────────────────────────────────────────────
 app.use(notFoundHandler); // مسیر ناشناخته → 404

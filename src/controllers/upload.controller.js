@@ -47,6 +47,37 @@ export async function uploadBookImage(req, res, next) {
     if (req.file) deleteFile(req.file.path);
     next(err);
   }
+
+  export async function uploadBookImages(req, res, next) {
+  try {
+    if (!req.files || req.files.length === 0) throw new AppError("فایلی آپلود نشد", 400);
+    const book = await prisma.book.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!book) {
+      req.files.forEach((f) => deleteFile(f.path));
+      throw new AppError("کتاب پیدا نشد", 404);
+    }
+    const newUrls = req.files.map((f) => getFileUrl(req, f.path));
+    const updatedImages = [...(book.images || []), ...newUrls];
+    const updated = await prisma.book.update({ where: { id: parseInt(req.params.id) }, data: { images: updatedImages } });
+    res.json({ success: true, message: `${newUrls.length} تصویر با موفقیت اضافه شد`, images: updated.images, book: updated });
+  } catch (err) {
+    if (req.files) req.files.forEach((f) => deleteFile(f.path));
+    next(err);
+  }
+}
+
+export async function deleteBookGalleryImage(req, res, next) {
+  try {
+    const { imageUrl } = req.query;
+    if (!imageUrl) throw new AppError("آدرس تصویر مشخص نشده", 400);
+    const book = await prisma.book.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!book) throw new AppError("کتاب پیدا نشد", 404);
+    if (imageUrl.includes("/uploads/")) deleteFile(imageUrl);
+    const updatedImages = (book.images || []).filter((url) => url !== imageUrl);
+    const updated = await prisma.book.update({ where: { id: parseInt(req.params.id) }, data: { images: updatedImages } });
+    res.json({ success: true, message: "تصویر حذف شد", images: updated.images });
+  } catch (err) { next(err); }
+}
 }
 
 // ─── POST /api/upload/authors/:id/avatar ────────────────────────────────────

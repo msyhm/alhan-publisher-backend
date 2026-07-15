@@ -92,6 +92,10 @@ const bookFields = {
     .trim()
     .optional()
     .nullable(),
+
+  coverType: z.enum(["شومیز", "گالینگور", "سلفون براق", "سلفون مات"], { invalid_type_error: "نوع جلد معتبر نیست" }).optional().nullable(),
+  trimSize: z.enum(["رقعی", "وزیری", "رحلی", "جیبی", "پالتویی"], { invalid_type_error: "قطع کتاب معتبر نیست" }).optional().nullable(),
+  images: z.array(z.string().url("آدرس تصویر معتبر نیست")).max(10, "حداکثر ۱۰ تصویر مجاز است").optional(),
 };
 
 // ─── ساخت کتاب جدید ──────────────────────────────────────────────────────────
@@ -115,6 +119,9 @@ export const updateBookSchema = z.object({
   isbn:          bookFields.isbn,
   edition:       bookFields.edition,
   publisherCity: bookFields.publisherCity,
+  coverType: bookFields.coverType,
+  trimSize:  bookFields.trimSize,
+  images:    bookFields.images,
 }).refine(
   (data) => Object.keys(data).length > 0,
   { message: "حداقل یک فیلد برای ویرایش باید ارسال شود" }
