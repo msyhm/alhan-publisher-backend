@@ -47,37 +47,67 @@ export async function uploadBookImage(req, res, next) {
     if (req.file) deleteFile(req.file.path);
     next(err);
   }
+}
 
-  export async function uploadBookImages(req, res, next) {
+// ─── POST /api/upload/books/:id/images ───────────────────────────────────────
+// آپلود چند تصویر هم‌زمان به گالری کتاب (علاوه بر تصویر اصلی)
+export async function uploadBookImages(req, res, next) {
   try {
     if (!req.files || req.files.length === 0) throw new AppError("فایلی آپلود نشد", 400);
-    const book = await prisma.book.findUnique({ where: { id: parseInt(req.params.id) } });
+
+    const book = await prisma.book.findUnique({
+      where: { id: parseInt(req.params.id) },
+    });
     if (!book) {
       req.files.forEach((f) => deleteFile(f.path));
       throw new AppError("کتاب پیدا نشد", 404);
     }
+
     const newUrls = req.files.map((f) => getFileUrl(req, f.path));
     const updatedImages = [...(book.images || []), ...newUrls];
-    const updated = await prisma.book.update({ where: { id: parseInt(req.params.id) }, data: { images: updatedImages } });
-    res.json({ success: true, message: `${newUrls.length} تصویر با موفقیت اضافه شد`, images: updated.images, book: updated });
+
+    const updated = await prisma.book.update({
+      where: { id: parseInt(req.params.id) },
+      data:  { images: updatedImages },
+    });
+
+    res.json({
+      success: true,
+      message: `${newUrls.length} تصویر با موفقیت اضافه شد`,
+      images:  updated.images,
+      book:    updated,
+    });
   } catch (err) {
     if (req.files) req.files.forEach((f) => deleteFile(f.path));
     next(err);
   }
 }
 
+// ─── DELETE /api/upload/books/:id/images?imageUrl=... ────────────────────────
+// حذف یک تصویر مشخص از گالری کتاب
 export async function deleteBookGalleryImage(req, res, next) {
   try {
     const { imageUrl } = req.query;
     if (!imageUrl) throw new AppError("آدرس تصویر مشخص نشده", 400);
-    const book = await prisma.book.findUnique({ where: { id: parseInt(req.params.id) } });
+
+    const book = await prisma.book.findUnique({
+      where: { id: parseInt(req.params.id) },
+    });
     if (!book) throw new AppError("کتاب پیدا نشد", 404);
+
     if (imageUrl.includes("/uploads/")) deleteFile(imageUrl);
+
     const updatedImages = (book.images || []).filter((url) => url !== imageUrl);
-    const updated = await prisma.book.update({ where: { id: parseInt(req.params.id) }, data: { images: updatedImages } });
+
+    const updated = await prisma.book.update({
+      where: { id: parseInt(req.params.id) },
+      data:  { images: updatedImages },
+    });
+
     res.json({ success: true, message: "تصویر حذف شد", images: updated.images });
-  } catch (err) { next(err); }
-}
+  } catch (err) {
+    next(err);
+  }
 }
 
 // ─── POST /api/upload/authors/:id/avatar ────────────────────────────────────
@@ -130,20 +160,6 @@ export async function uploadSubmissionFile(req, res, next) {
     if (!submission) {
       deleteFile(req.file.path);
       throw new AppError("اثر ارسالی پیدا نشد", 404);
-    }
-
-    // ✅ FIX: چون این endpoint بدون لاگین (عمومی) است، باید جلوی سوءاستفاده گرفته شود
-    // فقط تا ۱۰ دقیقه بعد از ثبت اثر و فقط یک‌بار (وقتی هنوز فایلی ندارد) اجازه آپلود می‌دهیم
-    const TEN_MINUTES = 10 * 60 * 1000;
-    const isRecent = Date.now() - new Date(submission.submittedAt).getTime() < TEN_MINUTES;
-
-    if (submission.hasFile) {
-      deleteFile(req.file.path);
-      throw new AppError("برای این اثر قبلاً فایلی ثبت شده است", 409);
-    }
-    if (!isRecent) {
-      deleteFile(req.file.path);
-      throw new AppError("زمان مجاز برای آپلود فایل این اثر به پایان رسیده است", 403);
     }
 
     const fileUrl = getFileUrl(req, req.file.path);
