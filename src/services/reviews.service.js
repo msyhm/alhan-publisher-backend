@@ -4,28 +4,50 @@ import { AppError } from "../middlewares/errorHandler.js";
 export async function getApprovedReviewsForBook(bookId) {
   return prisma.review.findMany({
     where:   { bookId: parseInt(bookId), status: "APPROVED" },
+    include: { user: { select: { name: true } } },
     orderBy: { createdAt: "desc" },
   });
 }
 
-export async function createReview(bookId, data) {
+export async function createReview(bookId, userId, data) {
   const book = await prisma.book.findUnique({ where: { id: parseInt(bookId) } });
   if (!book) throw new AppError("کتاب پیدا نشد", 404);
+
+  const existing = await prisma.review.findFirst({
+    where: { bookId: parseInt(bookId), userId },
+  });
+  if (existing) throw new AppError("شما قبلاً برای این کتاب نظر ثبت کرده‌اید", 409);
+
   return prisma.review.create({
-    data: { bookId: parseInt(bookId), name: data.name, rating: data.rating ?? null, comment: data.comment, status: "PENDING" },
+    data: {
+      bookId: parseInt(bookId),
+      userId,
+      rating:  data.rating ?? null,
+      comment: data.comment,
+      status:  "PENDING",
+    },
   });
 }
 
 export async function getAllReviews(query) {
-  const page = query.page || 1, limit = query.limit || 20;
+  const page  = query.page  || 1;
+  const limit = query.limit || 20;
   const where = query.status ? { status: query.status } : {};
+
   const [reviews, total] = await Promise.all([
     prisma.review.findMany({
-      where, include: { book: { select: { id: true, title: true } } },
-      orderBy: { createdAt: "desc" }, skip: (page - 1) * limit, take: limit,
+      where,
+      include: {
+        book: { select: { id: true, title: true } },
+        user: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip:    (page - 1) * limit,
+      take:    limit,
     }),
     prisma.review.count({ where }),
   ]);
+
   return { reviews, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
 }
 

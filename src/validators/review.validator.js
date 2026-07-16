@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const createReviewSchema = z.object({
-  name: z.string({ required_error: "نام الزامی است" }).min(2).max(100).trim(),
   rating: z.number().int().min(1).max(5).optional().nullable(),
   comment: z.string({ required_error: "متن نظر الزامی است" }).min(5).max(2000).trim(),
 });

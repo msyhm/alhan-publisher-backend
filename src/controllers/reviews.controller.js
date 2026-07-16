@@ -10,7 +10,7 @@ export async function getBookReviews(req, res, next) {
 
 export async function createBookReview(req, res, next) {
   try {
-    await reviewsService.createReview(req.params.bookId, req.body);
+    await reviewsService.createReview(req.params.bookId, req.currentUser.id, req.body);
     res.status(201).json({ success: true, message: "نظر شما ثبت شد و پس از بررسی نمایش داده می‌شود" });
   } catch (err) { next(err); }
 }
