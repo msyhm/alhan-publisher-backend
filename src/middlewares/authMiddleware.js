@@ -51,6 +51,29 @@ export async function requireAuth(req, res, next) {
   }
 }
 
+export async function requireUserAuth(req, res, next) {
+  try {
+    const token = extractToken(req);
+    if (!token) throw new AppError("برای این کار ابتدا وارد حساب کاربری خود شوید", 401);
+
+    const payload = verifyToken(token);
+    if (!payload || payload.role !== "user") {
+      throw new AppError("توکن نامعتبر یا منقضی شده است — دوباره وارد شوید", 401);
+    }
+
+    const user = await prisma.user.findUnique({
+      where:  { id: payload.sub },
+      select: { id: true, name: true, email: true, phone: true },
+    });
+    if (!user) throw new AppError("حساب کاربری پیدا نشد", 401);
+
+    req.currentUser = user;
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
 /**
  * middleware اعتبارسنجی Zod — جلوگیری از ورود داده نامعتبر
  *

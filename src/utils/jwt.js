@@ -23,6 +23,15 @@ export function generateToken(admin) {
   );
 }
 
+export function generateUserToken(user) {
+  if (!JWT_SECRET) throw new Error("JWT_SECRET تعریف نشده است");
+  return jwt.sign(
+    { sub: user.id, name: user.name, email: user.email, role: "user" },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+}
+
 export function verifyToken(token) {
   if (!JWT_SECRET) throw new Error("JWT_SECRET تعریف نشده است");
 
