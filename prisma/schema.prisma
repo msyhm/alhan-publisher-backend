@@ -59,11 +59,22 @@ model Review {
   id        Int      @id @default(autoincrement())
   bookId    Int
   book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  name      String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating    Int?
   comment   String
   status    String   @default("PENDING")
   createdAt DateTime @default(now())
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+  reviews      Review[]
 }
 
 // ─────────────────────────────────────────────────────────────────────────
