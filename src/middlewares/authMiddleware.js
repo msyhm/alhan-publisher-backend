@@ -31,6 +31,11 @@ export async function requireAuth(req, res, next) {
       throw new AppError("توکن نامعتبر یا منقضی شده است — دوباره وارد شوید", 401);
     }
 
+    // ✅ بررسی نقش توکن: باید متعلق به ادمین باشد، نه یک کاربر عادی
+    if (payload.role !== "admin") {
+      throw new AppError("دسترسی غیرمجاز", 403);
+    }
+
     // ۳. پیدا کردن ادمین در دیتابیس
     // (اگر ادمین بعد از لاگین حذف شده باشد، توکن قدیمی کار نمی‌کند)
     const admin = await prisma.admin.findUnique({
