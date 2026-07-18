@@ -52,6 +52,7 @@ import submissionsRoutes from "./routes/submissions.routes.js";
 import settingsRoutes    from "./routes/settings.routes.js";
 import uploadRoutes      from "./routes/upload.routes.js";
 import usersRoutes       from "./routes/users.routes.js";
+import favoritesRoutes   from "./routes/favorites.routes.js";
 
 app.use("/api/auth",        authRoutes);
 app.use("/api/books",       booksRoutes);
@@ -62,6 +63,7 @@ app.use("/api/settings",    settingsRoutes);
 app.use("/api/upload",      uploadRoutes);
 app.use("/api/reviews",     reviewsRoutes);
 app.use("/api/users",       usersRoutes);
+app.use("/api/favorites",   favoritesRoutes);
 
 // ─── مدیریت خطاها ──────────────────────────────────────────────────────────
 app.use(notFoundHandler); // مسیر ناشناخته → 404
