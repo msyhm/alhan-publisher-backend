@@ -6,7 +6,7 @@
 import * as settingsService from "../services/settings.service.js";
 import { AppError } from "../middlewares/errorHandler.js";
 
-const VALID_KEYS = ["general", "hero", "contact", "social", "about", "universities"];
+const VALID_KEYS = ["general", "hero", "contact", "social", "about", "universities", "shipping"];
 
 // ─── GET /api/settings (عمومی) ────────────────────────────────────────────────
 // فرانت از این endpoint برای بارگذاری همه تنظیمات سایت استفاده می‌کند

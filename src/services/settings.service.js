@@ -7,7 +7,7 @@
 import { prisma } from "../config/database.js";
 
 // کلیدهای معتبر تنظیمات
-const VALID_KEYS = ["general", "hero", "contact", "social", "about", "universities"];
+const VALID_KEYS = ["general", "hero", "contact", "social", "about", "universities", "shipping"];
 
 // ─── دریافت همه تنظیمات ──────────────────────────────────────────────────────
 export async function getAllSettings() {
