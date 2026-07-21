@@ -20,3 +20,22 @@ export async function getMyOrders(req, res, next) {
     res.json({ success: true, orders });
   } catch (err) { next(err); }
 }
+
+export async function getAllOrders(req, res, next) {
+  try {
+    const query = {
+      status: req.query.status || undefined,
+      page:   req.query.page  ? parseInt(req.query.page)  : 1,
+      limit:  req.query.limit ? parseInt(req.query.limit) : 20,
+    };
+    const result = await ordersService.getAllOrdersAdmin(query);
+    res.json({ success: true, ...result });
+  } catch (err) { next(err); }
+}
+
+export async function updateStatus(req, res, next) {
+  try {
+    const order = await ordersService.updateOrderStatus(req.params.id, req.body.status);
+    res.json({ success: true, message: "وضعیت سفارش به‌روزرسانی شد", order });
+  } catch (err) { next(err); }
+}

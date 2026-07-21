@@ -62,3 +62,33 @@ export async function getOrdersForUser(userId) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+export async function getAllOrdersAdmin(query) {
+  const page  = query.page  || 1;
+  const limit = query.limit || 20;
+  const where = query.status ? { status: query.status } : {};
+
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      include: {
+        items:   true,
+        address: true,
+        user:    { select: { id: true, name: true, email: true, phone: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip:    (page - 1) * limit,
+      take:    limit,
+    }),
+    prisma.order.count({ where }),
+  ]);
+
+  return { orders, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+}
+
+export async function updateOrderStatus(orderId, status) {
+  const existing = await prisma.order.findUnique({ where: { id: parseInt(orderId) } });
+  if (!existing) throw new AppError("سفارش پیدا نشد", 404);
+
+  return prisma.order.update({ where: { id: parseInt(orderId) }, data: { status } });
+}
